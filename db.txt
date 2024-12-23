@@ -1,0 +1,62 @@
+-- Bảng User: Lưu thông tin người dùng
+CREATE TABLE User (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Bảng WorkSchedule: Lưu thông tin lịch làm việc của người dùng
+
+CREATE TABLE WorkSchedule (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    start_time DATETIME NOT NULL,  -- Lưu thời gian bắt đầu công việc
+    end_time DATETIME NOT NULL,    -- Lưu thời gian kết thúc công việc
+    priority ENUM('low', 'medium', 'high') DEFAULT 'low',  -- Mức độ quan trọng của công việc
+    notification_time INT,  -- Thời gian trước khi công việc bắt đầu (phút)
+    is_canceled BOOLEAN DEFAULT FALSE,  -- Trạng thái hủy công việc
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);
+
+-- Bảng Notification: Lưu thông tin thông báo cho người dùng
+CREATE TABLE Notification (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    work_schedule_id INT NOT NULL,
+    user_id INT NOT NULL,
+    notification_time DATETIME NOT NULL,  -- Thời gian gửi thông báo
+    message TEXT,
+    is_sent BOOLEAN DEFAULT FALSE,  -- Trạng thái gửi thông báo
+    FOREIGN KEY (work_schedule_id) REFERENCES WorkSchedule(id),
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);
+
+-- Bảng Booking: Lưu thông tin đặt lịch dựa trên thời gian rảnh của người dùng
+CREATE TABLE Booking (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    free_time_config_id INT NOT NULL,  -- Tham chiếu đến thời gian rảnh thay vì lịch làm việc
+    guest_name VARCHAR(255) NOT NULL,  -- Tên khách đặt lịch
+    guest_email VARCHAR(255) NOT NULL,  -- Email của khách
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',  -- Trạng thái của booking
+    FOREIGN KEY (free_time_config_id) REFERENCES FreeTimeConfiguration(id)  -- Khóa ngoại tham chiếu đến bảng FreeTimeConfiguration
+);
+
+
+-- Bảng PublicLink: Lưu thông tin link công khai để chia sẻ lịch làm việc
+CREATE TABLE PublicLink (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    link VARCHAR(255) NOT NULL UNIQUE,  -- Liên kết công khai
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);
+
+-- Bảng FreeTimeConfiguration: Lưu thông tin thời gian rảnh của người dùng
+CREATE TABLE FreeTimeConfiguration (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    free_time_start DATETIME NOT NULL,  -- Thời gian bắt đầu thời gian rảnh
+    free_time_end DATETIME NOT NULL,    -- Thời gian kết thúc thời gian rảnh
+    FOREIGN KEY (user_id) REFERENCES User(id)
+);
